@@ -1,74 +1,20 @@
-export enum LogType {
-  // error = 'error',
-  // info = 'info',
-  debug = 'debug',
-}
+import { LogType } from './constants';
 
-/**
- * The simplified version of transaction status.
- */
-export enum Status {
-  /**
-   * The transaction failed.
-   */
-  failed = 'failed',
+export type MethodResponse<T, T2 = unknown> = Promise<
+  | {
+      data: T;
+      raw: T2;
+      error?: undefined;
+    }
+  | {
+      data?: undefined;
+      raw?: undefined;
+      error: object;
+    }
+>;
 
-  /**
-   * The transaction is pending.
-   */
-  pending = 'pending',
+export type BaseLogger = {
+  log: (context: string, type: LogType, ...args: unknown[]) => void;
+};
 
-  /**
-   * The transaction succeeded.
-   */
-  succeeded = 'succeeded',
-
-  /**
-   * The status received from the endpoint was not recognized
-   */
-  unknown = 'unknown',
-}
-
-// Todo: verify api status
-export enum ApiRawStatus {
-  /**
-   * Transaction is in progress on Orange system.
-   */
-  pending = 'PENDING',
-
-  /**
-   * The user canceled the payment.
-   */
-  canceled = 'CANCELLED',
-
-  /**
-   * Waiting for user entry.
-   */
-  initialized = 'INITIATED',
-
-  /**
-   * Payment is done for mobile.
-   */
-  succeeded = 'SUCCESSFULL',
-
-  /**
-   * Payment is done for web.
-   */
-  succeeded2 = 'SUCCESS',
-
-  /**
-   * Payment failed.
-   */
-  failed = 'FAILED',
-
-  /**
-   * The token timed out.
-   * Note that the minimum token expiration time is 7 min.
-   */
-  expired = 'EXPIRED',
-}
-
-export enum ApiEnvironment {
-  dev = 'dev',
-  prod = 'prod',
-}
+export type RoutesImpl<T extends object> = Record<keyof T, unknown>;

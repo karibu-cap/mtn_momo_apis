@@ -1,15 +1,23 @@
-import { AxiosError } from '../deps/deps';
-import { ApiRawStatus, Status } from './interfaces';
+import { AxiosError, classTransformer, validator } from '../deps/deps';
 
 /**
- * A merchant number regExp authorized by y-note.
+ * Returns a validated instance of the provided class.
+ * @param {T} plain The object source to validate
+ * @param {classTransformer.ClassConstructor<T>} cls The class type needed for the returned instance.
+ * @return {T}
  */
-export const yNoteMerchantNumber = /^(237)?(69\d{7}$|65[5-9]\d{6}$)/;
+export function validInstanceOf<T extends object>(
+  plain: T,
+  cls: classTransformer.ClassConstructor<T>
+): T {
+  const instance = classTransformer.plainToInstance(cls, plain);
+  const validationResponse = validator.validateSync(instance);
+  if (validationResponse.length > 0) {
+    throw { errors: validationResponse };
+  }
 
-/**
- * An orange money phone number regex. that do not authorize the country prefix.
- */
-export const omNumber = /^(69\d{7}$|65[5-9]\d{6}$)/;
+  return instance;
+}
 
 /**
  * Returns the base 64 hash code for the provided data.
@@ -17,13 +25,13 @@ export const omNumber = /^(69\d{7}$|65[5-9]\d{6}$)/;
  * @param {string} secret The password or customer secret.
  * @returns
  */
-export const hash = (key: string, secret: string): string => {
+export function hash(key: string, secret: string): string {
   const toHash = `${key}:${secret}`;
   if (!btoa) {
     return Buffer.from(toHash).toString('base64');
   }
   return btoa(toHash);
-};
+}
 
 /**
  * Encode the data to w3 x form encoded url.
@@ -73,22 +81,4 @@ export function parseAxiosError(
     }
   }
   return err;
-}
-
-export function getStatusFromProviderRawStatus(
-  rawStatus: ApiRawStatus
-): Status {
-  switch (rawStatus) {
-    case ApiRawStatus.pending:
-    case ApiRawStatus.initialized:
-      return Status.pending;
-    case ApiRawStatus.succeeded:
-    case ApiRawStatus.succeeded2:
-      return Status.succeeded;
-    case ApiRawStatus.canceled:
-    case ApiRawStatus.expired:
-    case ApiRawStatus.failed:
-      return Status.failed;
-  }
-  return Status.unknown;
 }
