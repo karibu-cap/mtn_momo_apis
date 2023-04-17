@@ -61,7 +61,7 @@ describe('CashIn:requestToPay', () => {
     expect(data).not.toBeDefined();
     expect(raw).not.toBeDefined();
     expect(error).toBeDefined();
-    expect((error as Record<string, unknown>).errors).toHaveLength(4);
+    expect((error as Record<string, unknown>).errors).toHaveLength(3);
   });
   it('should fail on access token failure', async () => {
     const requestSpy = jest
