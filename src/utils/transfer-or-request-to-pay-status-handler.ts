@@ -8,8 +8,7 @@ class TransferOrRtpTransactionStatusParam {
   /**
    * Reference-Id that was passed to the pay or transfer request.
    */
-  @validator.IsNotEmpty()
-  @validator.IsString()
+  @validator.IsUUID('4')
   referenceId: string;
 
   /**
@@ -121,7 +120,7 @@ export async function transferOrRequestToPayTransactionStatus<
 
     return {
       error: {
-        message: 'Error occurred',
+        message: 'Error occurred while getting transaction status',
         raw: parseAxiosError(error),
       },
     };

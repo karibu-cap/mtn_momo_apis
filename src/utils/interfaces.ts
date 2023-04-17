@@ -14,9 +14,9 @@ export type MethodResponse<T, T2 = unknown> = Promise<
 >;
 
 export type Token = {
-  access_token: 'string';
-  token_type: 'string';
-  expires_in: 0;
+  access_token: string;
+  token_type: string;
+  expires_in: number;
 };
 
 export type BaseLogger = {
