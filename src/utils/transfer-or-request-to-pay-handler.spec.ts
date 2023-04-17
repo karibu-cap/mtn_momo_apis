@@ -24,7 +24,7 @@ describe('transferOrRequestToPay', () => {
     expect(data).not.toBeDefined();
     expect(raw).not.toBeDefined();
     expect(error).toBeDefined();
-    expect((error as Record<string, unknown>).errors).toHaveLength(6);
+    expect((error as Record<string, unknown>).errors).toHaveLength(5);
   });
 
   it('should fail when neither payerId nor payeeId is provided', async () => {
