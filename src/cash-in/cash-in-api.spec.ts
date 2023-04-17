@@ -79,14 +79,16 @@ describe('CashIn:requestToPay', () => {
       payerMessage: '',
       referenceId: PAYMENT_REF01,
     });
-    
+
     expect(data).not.toBeDefined();
     expect(raw).not.toBeDefined();
     expect(error).toBeDefined();
-    expect((error as Record<string, unknown>).message).toBe('failed to generate token');
-    expect(requestSpy).toHaveBeenCalledTimes(1)
+    expect((error as Record<string, unknown>).message).toBe(
+      'failed to generate token'
+    );
+    expect(requestSpy).toHaveBeenCalledTimes(1);
   });
-   it('should succeed on valid param provided', async () => {
+  it('should succeed on valid param provided', async () => {
     const requestSpy = jest
       .spyOn(axios, 'post')
       .mockImplementation()
@@ -113,7 +115,7 @@ describe('CashIn:requestToPay', () => {
     expect(raw).toBeDefined();
     expect(requestSpy).toHaveBeenCalledTimes(2);
   });
-})
+});
 
 describe('CashIn:requestToPayTransactionStatus', () => {
   const PAYMENT_REF01 = 'd1b9cc0a-0728-4398-8d5b-2b3947e073a9';
@@ -138,15 +140,15 @@ describe('CashIn:requestToPayTransactionStatus', () => {
   });
   it('should succeed on valid param provided', async () => {
     const succeedEg = {
-      "amount": 1,
-      "currency": "XAF",
-      "financialTransactionId": 363440463,
-      "externalId": 83453,
-      "payer": {
-        "partyIdType": "MSISDN",
-        "partyId": 698092232
+      amount: 1,
+      currency: 'XAF',
+      financialTransactionId: 363440463,
+      externalId: 83453,
+      payer: {
+        partyIdType: 'MSISDN',
+        partyId: 698092232,
       },
-      "status": "PENDING"
+      status: 'PENDING',
     };
     const postSpy = jest
       .spyOn(axios, 'post')
@@ -157,13 +159,13 @@ describe('CashIn:requestToPayTransactionStatus', () => {
           token_type: 'token_type',
           expires_in: 0,
         },
-      })
+      });
     const getSpy = jest
       .spyOn(axios, 'get')
       .mockImplementation()
       .mockResolvedValueOnce({
         data: succeedEg,
-      })
+      });
     const { error, data, raw } = await api.requestToPayTransactionStatus({
       referenceId: PAYMENT_REF01,
     });

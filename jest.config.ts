@@ -26,9 +26,7 @@ const jestConfig: Config = {
   restoreMocks: true,
 
   // A list of paths to modules that run some code to configure or set up the testing environment.
-  setupFiles: [
-    './jest.setup.ts'
-  ],
+  setupFiles: ['./jest.setup.ts'],
 
   // The test environment that will be used for testing
   testEnvironment: 'node',

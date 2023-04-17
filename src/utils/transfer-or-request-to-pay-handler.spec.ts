@@ -13,7 +13,7 @@ describe('transferOrRequestToPay', () => {
       createAccessToken: () => Promise.reject({}),
       endPoint: '',
       externalId: '',
-      logger: new Logger({ log() {} }),
+      logger: new Logger({ log: console.log }),
       ocpApimSubscriptionKey: '',
       payeeNote: '',
       payerMessage: '',
@@ -124,7 +124,7 @@ describe('transferOrRequestToPay', () => {
       .spyOn(axios, 'post')
       .mockImplementation()
       .mockRejectedValue(<AxiosResponse>{
-        data: {}
+        data: {},
       });
     const { error, data, raw } = await transferOrRequestToPay({
       amount: 1,
@@ -148,14 +148,16 @@ describe('transferOrRequestToPay', () => {
     expect(raw).not.toBeDefined();
     expect(postSpy).toHaveBeenCalledTimes(1);
     expect(error).toBeDefined();
-    expect((error as Error).message).toEqual('Error occurred while posting the request');
+    expect((error as Error).message).toEqual(
+      'Error occurred while posting the request'
+    );
   });
   it('should succeed on request succeed', async () => {
     const postSpy = jest
       .spyOn(axios, 'post')
       .mockImplementation()
       .mockResolvedValue(<AxiosResponse>{
-        data: {}
+        data: {},
       });
     const { error, data, raw } = await transferOrRequestToPay({
       amount: 1,
