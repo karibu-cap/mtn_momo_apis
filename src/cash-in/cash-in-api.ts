@@ -28,6 +28,7 @@ export class RequestToPayParam {
     allowNaN: false,
     maxDecimalPlaces: 0,
   })
+  @validator.Min(1)
   amount: number;
 
   /**
@@ -52,6 +53,8 @@ export class RequestToPayParam {
    * The external id will be included in transaction history report.
    * External id is not required to be unique.
    */
+  @validator.IsString()
+  @validator.IsNotEmpty()
   externalId: string;
 
   /**
@@ -150,7 +153,7 @@ export class CashInApi extends CommonApi implements RoutesImpl<CashInRoutes> {
       ...param,
       endPoint: this.routes.requestToPay,
       targetEnvironment: this.config.targetEnvironment,
-      createAccessToken: this.createAccessToken,
+      createAccessToken: this.createAccessToken.bind(this),
       ocpApimSubscriptionKey: this.config.ocpApimSubscriptionKey,
       logger: this.logging.of('requestToPay'),
     });
@@ -165,9 +168,9 @@ export class CashInApi extends CommonApi implements RoutesImpl<CashInRoutes> {
     param: RTPTransactionStatusParam
   ): MethodResponse<Status, RTPTransactionStatusResponse> {
     return transferOrRequestToPayTransactionStatus({
-      getEndPoint: this.routes.requestToPayTransactionStatus,
+      getEndPoint: this.routes.requestToPayTransactionStatus.bind(this.routes),
       targetEnvironment: this.config.targetEnvironment,
-      createAccessToken: this.createAccessToken,
+      createAccessToken: this.createAccessToken.bind(this),
       ocpApimSubscriptionKey: this.config.ocpApimSubscriptionKey,
       referenceId: param.referenceId,
       logger: this.logging.of('requestToPayTransactionStatus'),

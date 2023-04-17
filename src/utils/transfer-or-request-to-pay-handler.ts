@@ -1,7 +1,13 @@
 import { ValidityCheck } from './validity-check';
-import { axios, AxiosResponse, validator as validator } from '../deps/deps';
+import {
+  axios,
+  AxiosResponse,
+  classTransformer,
+  validator as validator,
+} from '../deps/deps';
 import {
   Currency,
+  supportedCountriesCode,
   XTargetEnvironment,
   xTargetEnvironmentCode,
   xTargetEnvironmentCurrency,
@@ -19,6 +25,7 @@ class TransferOrRtpParam {
     allowNaN: false,
     maxDecimalPlaces: 0,
   })
+  @validator.Min(1)
   amount: number;
 
   /**
@@ -43,10 +50,12 @@ class TransferOrRtpParam {
    * The external id will be included in transaction history report.
    * External id is not required to be unique.
    */
+  @validator.IsNotEmpty()
+  @validator.IsString()
   externalId: string;
 
   /**
-   * Mobile Number validated according to ITU-T E.164
+   * Mobile Number
    */
   @ValidityCheck<TransferOrRtpParam>((o) => {
     if (o.payerId && o.payeeId) {
@@ -63,13 +72,11 @@ class TransferOrRtpParam {
     }
     return { isValid: true };
   })
-  @validator.IsNumberString()
-  @validator.IsOptional()
-  payeeId?: string;
+  @classTransformer.Transform(({ value }) => Number(value))
+  payeeId?: string | number;
 
-  @validator.IsNumberString()
-  @validator.IsOptional()
-  payerId?: string;
+  @classTransformer.Transform(({ value }) => Number(value))
+  payerId?: string | number;
 
   /**
    * Message that will be written in the payer transaction history message field.
@@ -102,7 +109,35 @@ class TransferOrRtpParam {
   ocpApimSubscriptionKey: string;
 
   @validator.IsObject()
+  @classTransformer.Type(() => Logger)
   logger: Logger;
+}
+
+/**
+ * Normalize the provided phone number using ITU-T E.164
+ * @param phone - A validated phone number.
+ * @param targetEnvironment - A country of that number.
+ * @returns - The ITU-T E.164 of the provided phone number
+ */
+function parsePhoneToITU_T_E164(
+  phone: string,
+  targetEnvironment: XTargetEnvironment,
+  logger: Logger
+): string {
+  if (targetEnvironment == XTargetEnvironment.sandbox) {
+    return phone;
+  }
+
+  const countryCode = xTargetEnvironmentCode[targetEnvironment];
+  const phoneCode = supportedCountriesCode[countryCode];
+  if (phone.startsWith(`${phoneCode}`)) {
+    return phone;
+  }
+  const normalizedValue = `${phoneCode}${phone}`;
+  logger.info(
+    `Normalizing phone number from <${phone}> to <${normalizedValue}>`
+  );
+  return normalizedValue;
 }
 
 /**
@@ -145,6 +180,13 @@ export async function transferOrRequestToPay(
       error: { message: 'failed to generate token', raw: tokenError },
     };
   }
+
+  const phoneNumber = parsePhoneToITU_T_E164(
+    `${parsedParam[parsedParam.payeeId ? 'payeeId' : 'payerId']}`,
+    parsedParam.targetEnvironment,
+    parsedParam.logger,
+  );
+
   const endPoint = parsedParam.endPoint;
   const header = {
     Authorization: `Bearer ${tokenData}`,
@@ -160,7 +202,7 @@ export async function transferOrRequestToPay(
     externalId: parsedParam.externalId,
     payee: {
       partyIdType: 'MSISDN',
-      partyId: parsedParam.payeeId || parsedParam.payerId,
+      partyId: phoneNumber,
     },
     payerMessage: parsedParam.payerMessage,
     payeeNote: parsedParam.payeeNote,
@@ -189,7 +231,7 @@ export async function transferOrRequestToPay(
 
     return {
       error: {
-        message: 'Error occurred',
+        message: 'Error occurred while posting the request',
         raw: parseAxiosError(error),
       },
     };

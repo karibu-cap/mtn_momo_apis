@@ -28,6 +28,7 @@ export class TransferParam {
     allowNaN: false,
     maxDecimalPlaces: 0,
   })
+  @validator.Min(1)
   amount: number;
 
   /**
@@ -52,6 +53,7 @@ export class TransferParam {
    * The external id will be included in transaction history report.
    * External id is not required to be unique.
    */
+  @validator.IsString()
   externalId: string;
 
   /**
@@ -145,7 +147,7 @@ export class CashOutApi extends CommonApi implements RoutesImpl<CashOutRoutes> {
       ...param,
       endPoint: this.routes.transfer,
       targetEnvironment: this.config.targetEnvironment,
-      createAccessToken: this.createAccessToken,
+      createAccessToken: this.createAccessToken.bind(this),
       ocpApimSubscriptionKey: this.config.ocpApimSubscriptionKey,
       logger: this.logging.of('transfer'),
     });
@@ -160,9 +162,9 @@ export class CashOutApi extends CommonApi implements RoutesImpl<CashOutRoutes> {
     param: TransferStatusParam
   ): MethodResponse<Status, TransferStatusResponse> {
     return transferOrRequestToPayTransactionStatus({
-      getEndPoint: this.routes.getTransferStatus,
+      getEndPoint: this.routes.getTransferStatus.bind(this.routes),
       targetEnvironment: this.config.targetEnvironment,
-      createAccessToken: this.createAccessToken,
+      createAccessToken: this.createAccessToken.bind(this),
       ocpApimSubscriptionKey: this.config.ocpApimSubscriptionKey,
       referenceId: param.referenceId,
       logger: this.logging.of('getTransferStatus'),
