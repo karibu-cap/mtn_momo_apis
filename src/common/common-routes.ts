@@ -4,7 +4,7 @@ import { XTargetEnvironment, ApiProduct } from '../utils/constants';
 const liveHost = 'https://proxy.momoapi.mtn.com';
 const sandboxLocation = 'https://sandbox.momodeveloper.mtn.com';
 
-export abstract class CoreRoutesParam {
+export abstract class CommonRoutesParam {
   @validator.IsEnum(XTargetEnvironment)
   environment: XTargetEnvironment;
 
@@ -16,13 +16,13 @@ export abstract class CoreRoutesParam {
  * Utility class that list a set of used api route.
  * @class
  */
-export abstract class CoreRoutes {
+export abstract class CommonRoutes {
   /**
-   * Constructs a new {CoreRoutes} and validate the provided configuration.
+   * Constructs a new {CommonRoutes} and validate the provided configuration.
    * @constructor
-   * @param {CoreRoutesParam} config - The required global route configuration.
+   * @param {CommonRoutesParam} config - The required global route configuration.
    */
-  constructor(protected readonly config: CoreRoutesParam) {}
+  constructor(protected readonly config: CommonRoutesParam) {}
 
   /**
    * e.g: https://sandbox.momodeveloper.mtn.com

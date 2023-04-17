@@ -34,23 +34,6 @@ export function hash(key: string, secret: string): string {
 }
 
 /**
- * Encode the data to w3 x form encoded url.
- * @param {Record<string, string>} data the data to encode.
- * @return {string} the encoded value.
- */
-export function encodeDataToXFormUrl(data: Record<string, string>): string {
-  const segments: string[] = [];
-  for (const key in data) {
-    if (Object.hasOwnProperty.call(data, key)) {
-      const encodedKey = encodeURIComponent(key);
-      const encodedValue = encodeURIComponent(data[key]);
-      segments.push(`${encodedKey}=${encodedValue}`);
-    }
-  }
-  return segments.join('&');
-}
-
-/**
  * Parse a given axios error.
  * @param error The error that occurred.
  * @returns The passed error if error instanceof AxiosError.

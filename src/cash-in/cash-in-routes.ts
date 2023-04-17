@@ -1,14 +1,14 @@
 import { validator as validator } from '../deps/deps';
-import { CoreRoutes, CoreRoutesParam } from '../core/core-routes';
+import { CommonRoutes, CommonRoutesParam } from '../common/common-routes';
 import { validInstanceOf } from '../utils/utils';
 
-export class CashInRoutesParam extends CoreRoutesParam {
+export class CashInRoutesParam extends CommonRoutesParam {
   @validator.IsNotEmpty()
   @validator.IsString()
   version: string;
 }
 
-export class CashInRoutes extends CoreRoutes {
+export class CashInRoutes extends CommonRoutes {
   protected readonly config: CashInRoutesParam;
   /**
    * Constructs a new {CashInRoutes} and validate the provided configuration.
