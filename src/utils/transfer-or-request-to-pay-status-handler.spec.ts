@@ -1,4 +1,3 @@
-import { ValidationError } from 'class-validator';
 import { axios, AxiosResponse } from '../deps/deps';
 import { Status, XTargetEnvironment } from './constants';
 import { Logger } from './logger';
@@ -10,8 +9,8 @@ describe('transferOrRequestToPayTransactionStatus', () => {
   it('should fail on invalid parameter provided', async () => {
     const { error, data, raw } = await transferOrRequestToPayTransactionStatus({
       createAccessToken: () => Promise.reject({}),
-      getEndPoint: ()=>'',
-      logger: new Logger({ log() {} }),
+      getEndPoint: () => '',
+      logger: new Logger({ log: console.log }),
       ocpApimSubscriptionKey: '',
       targetEnvironment: '' as XTargetEnvironment,
       referenceId: '',
@@ -26,7 +25,7 @@ describe('transferOrRequestToPayTransactionStatus', () => {
   it('should fail on access token creation failure', async () => {
     const { error, data, raw } = await transferOrRequestToPayTransactionStatus({
       createAccessToken: () => Promise.resolve({ error: {} }),
-      getEndPoint: ()=>'https://example.com',
+      getEndPoint: () => 'https://example.com',
       logger: new Logger({ log: console.log }),
       ocpApimSubscriptionKey: 'OC_APIM_SUBSCRIPTION_KEY',
       targetEnvironment: XTargetEnvironment.mtnCameroon,
@@ -43,7 +42,7 @@ describe('transferOrRequestToPayTransactionStatus', () => {
       .spyOn(axios, 'get')
       .mockImplementation()
       .mockRejectedValue(<AxiosResponse>{
-        data: {}
+        data: {},
       });
     const { error, data, raw } = await transferOrRequestToPayTransactionStatus({
       createAccessToken: () =>
@@ -51,7 +50,7 @@ describe('transferOrRequestToPayTransactionStatus', () => {
           data: 'THE_ACCESS_TOKEN',
           raw: { access_token: 'ad', token_type: '', expires_in: 300 },
         }),
-      getEndPoint: ()=>'https://example.com',
+      getEndPoint: () => 'https://example.com',
       logger: new Logger({ log: console.log }),
       ocpApimSubscriptionKey: 'OC_APIM_SUBSCRIPTION_KEY',
       targetEnvironment: XTargetEnvironment.mtnCameroon,
@@ -62,37 +61,39 @@ describe('transferOrRequestToPayTransactionStatus', () => {
     expect(raw).not.toBeDefined();
     expect(requestSpy).toHaveBeenCalledTimes(1);
     expect(error).toBeDefined();
-    expect((error as Error).message).toBe('Error occurred while getting transaction status');
+    expect((error as Error).message).toBe(
+      'Error occurred while getting transaction status'
+    );
   });
   it('should succeed on request succeed', async () => {
     const succeedEg = {
-      "amount": 1,
-      "currency": "XAF",
-      "financialTransactionId": 363440463,
-      "externalId": 83453,
-      "payee": {
-        "partyIdType": "MSISDN",
-        "partyId": 698092232
+      amount: 1,
+      currency: 'XAF',
+      financialTransactionId: 363440463,
+      externalId: 83453,
+      payee: {
+        partyIdType: 'MSISDN',
+        partyId: 698092232,
       },
-      "status": "SUCCESSFUL"
+      status: 'SUCCESSFUL',
     };
     const requestSpy = jest
       .spyOn(axios, 'get')
       .mockImplementation()
       .mockResolvedValue(<AxiosResponse>{
-        data: Object(succeedEg)
+        data: Object(succeedEg),
       });
     const { error, data, raw } = await transferOrRequestToPayTransactionStatus({
       createAccessToken: () =>
-      Promise.resolve({
-        data: 'THE_ACCESS_TOKEN',
-        raw: { access_token: 'ad', token_type: '', expires_in: 300 },
-      }),
-    getEndPoint: ()=>'https://example.com',
-    logger: new Logger({ log: console.log }),
-    ocpApimSubscriptionKey: 'OC_APIM_SUBSCRIPTION_KEY',
-    targetEnvironment: XTargetEnvironment.mtnCameroon,
-    referenceId: PAYMENT_REF01,
+        Promise.resolve({
+          data: 'THE_ACCESS_TOKEN',
+          raw: { access_token: 'ad', token_type: '', expires_in: 300 },
+        }),
+      getEndPoint: () => 'https://example.com',
+      logger: new Logger({ log: console.log }),
+      ocpApimSubscriptionKey: 'OC_APIM_SUBSCRIPTION_KEY',
+      targetEnvironment: XTargetEnvironment.mtnCameroon,
+      referenceId: PAYMENT_REF01,
     });
 
     expect(error).not.toBeDefined();

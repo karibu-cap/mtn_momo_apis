@@ -89,7 +89,7 @@ describe('CashOutApi:transfer', () => {
     expect(raw).toBeDefined();
     expect(requestSpy).toHaveBeenCalledTimes(2);
   });
-})
+});
 
 describe('CashOutApi:getTransferStatus', () => {
   const PAYMENT_REF01 = 'd1b9cc0a-0728-4398-8d5b-2b3947e073a9';
@@ -114,15 +114,15 @@ describe('CashOutApi:getTransferStatus', () => {
   });
   it('should succeed on valid param provided', async () => {
     const succeedEg = {
-      "amount": 1,
-      "currency": "XAF",
-      "financialTransactionId": 363440463,
-      "externalId": 83453,
-      "payer": {
-        "partyIdType": "MSISDN",
-        "partyId": 698092232
+      amount: 1,
+      currency: 'XAF',
+      financialTransactionId: 363440463,
+      externalId: 83453,
+      payer: {
+        partyIdType: 'MSISDN',
+        partyId: 698092232,
       },
-      "status": "SUCCESSFUL"
+      status: 'SUCCESSFUL',
     };
     const postSpy = jest
       .spyOn(axios, 'post')
@@ -133,13 +133,13 @@ describe('CashOutApi:getTransferStatus', () => {
           token_type: 'token_type',
           expires_in: 0,
         },
-      })
+      });
     const getSpy = jest
       .spyOn(axios, 'get')
       .mockImplementation()
       .mockResolvedValueOnce({
         data: succeedEg,
-      })
+      });
     const { error, data, raw } = await api.getTransferStatus({
       referenceId: PAYMENT_REF01,
     });

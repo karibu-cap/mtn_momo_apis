@@ -184,7 +184,7 @@ export async function transferOrRequestToPay(
   const phoneNumber = parsePhoneToITU_T_E164(
     `${parsedParam[parsedParam.payeeId ? 'payeeId' : 'payerId']}`,
     parsedParam.targetEnvironment,
-    parsedParam.logger,
+    parsedParam.logger
   );
 
   const endPoint = parsedParam.endPoint;
