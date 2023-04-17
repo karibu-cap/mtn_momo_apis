@@ -1,10 +1,15 @@
 import { axios, AxiosResponse, validator as validator } from '../deps/deps';
-import { BaseLogger, MethodResponse, RoutesImpl } from '../utils/interfaces';
+import {
+  BaseLogger,
+  MethodResponse,
+  RoutesImpl,
+  Token,
+} from '../utils/interfaces';
 import { Logger } from '../utils/logger';
 import { hash, parseAxiosError } from '../utils/utils';
-import { CoreRoutes } from './core-routes';
+import { CommonRoutes } from './common-routes';
 
-export abstract class CoreApiParam {
+export abstract class CommonApiParam {
   @validator.IsNotEmpty()
   @validator.IsString()
   userId: string;
@@ -21,31 +26,25 @@ export abstract class CoreApiParam {
   logger: BaseLogger;
 }
 
-export type Token = {
-  access_token: 'string';
-  token_type: 'string';
-  expires_in: 0;
-};
-
 /**
  * Utility class that list a set of used api route.
  * @class
  */
-export abstract class CoreApi implements RoutesImpl<CoreRoutes> {
-  protected readonly logger: Logger;
+export abstract class CommonApi implements RoutesImpl<CommonRoutes> {
+  protected readonly logging: Logger;
 
   /**
-   * Constructs a new {CoreApi} and validate the provided configuration.
+   * Constructs a new {CommonApi} and validate the provided configuration.
    * @constructor
-   * @param {CoreApiParam} config - The required global route configuration.
+   * @param {CommonApiParam} config - The required global route configuration.
    */
   constructor(
-    protected readonly config: CoreApiParam,
-    protected routes: CoreRoutes
+    protected readonly config: CommonApiParam,
+    protected routes: CommonRoutes
   ) {
-    this.logger = new Logger(this.config.logger, 'CommonApi');
+    this.logging = new Logger(this.config.logger, 'CommonApi');
 
-    this.logger.of('constructor').debug({
+    this.logging.of('constructor').debug({
       message: 'Config set',
       config,
     });
@@ -56,7 +55,7 @@ export abstract class CoreApi implements RoutesImpl<CoreRoutes> {
    * @return {MethodResponse<string, Token>}
    */
   async createAccessToken(): MethodResponse<string, Token> {
-    const logger = this.logger.of('createAccessToken');
+    const logger = this.logging.of('createAccessToken');
 
     const authorization = hash(this.config.userId, this.config.apiKey);
     const header = {

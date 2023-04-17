@@ -1,20 +1,20 @@
-import { CoreApi, CoreApiParam } from '../core/core-api';
-import { axios, AxiosResponse, validator as validator } from '../deps/deps';
+import { CommonApi, CommonApiParam } from '../common/common-api';
+import { validator as validator } from '../deps/deps';
 import {
   XTargetEnvironment,
   ApiProduct,
-  xTargetEnvironmentCode,
   Currency,
-  xTargetEnvironmentCurrency,
   Status,
   ErrorCode,
 } from '../utils/constants';
 import { MethodResponse, RoutesImpl } from '../utils/interfaces';
 import { Logger } from '../utils/logger';
-import { parseAxiosError, validInstanceOf } from '../utils/utils';
+import { transferOrRequestToPay } from '../utils/transfer-or-request-to-pay-handler';
+import { transferOrRequestToPayTransactionStatus } from '../utils/transfer-or-request-to-pay-status-handler';
+import { validInstanceOf } from '../utils/utils';
 import { CashOutRoutes } from './cash-out-routes';
 
-export class CashOutApiParam extends CoreApiParam {
+export class CashOutApiParam extends CommonApiParam {
   @validator.IsEnum(XTargetEnvironment)
   targetEnvironment: XTargetEnvironment;
 }
@@ -86,7 +86,7 @@ type TransferStatusResponse = {
   currency: string;
   financialTransactionId: string;
   externalId: string;
-  payer: {
+  payee: {
     partyIdType: 'MSISDN';
     partyId: string;
   };
@@ -108,10 +108,10 @@ const apiRouteVersion = 'v1_0';
  * Utility class that list a set of used api route.
  * @class
  */
-export class CashOutApi extends CoreApi implements RoutesImpl<CashOutRoutes> {
+export class CashOutApi extends CommonApi implements RoutesImpl<CashOutRoutes> {
   protected readonly config: CashOutApiParam;
   protected readonly routes: CashOutRoutes;
-  protected readonly logger: Logger;
+  protected readonly logging: Logger;
   /**
    * Constructs a new {CashOutApi} and validate the provided configuration.
    * Note: Constructor throw a list of validation error when the provided config is invalid.
@@ -128,175 +128,44 @@ export class CashOutApi extends CoreApi implements RoutesImpl<CashOutRoutes> {
     super(config, routes);
 
     this.config = validConfig;
-    this.logger = new Logger(this.config.logger, 'CashOutApi');
-    this.logger.of('constructor').debug({
+    this.logging = new Logger(this.config.logger, 'CashOutApi');
+    this.logging.of('constructor').debug({
       message: 'Config set',
       config,
     });
   }
 
   /**
-   * This operation is used to request a payment from a consumer (Payer).
-   * The payer will be asked to authorize the payment.
-   * The transaction will be executed once the payer has authorized the payment.
-   * The requestToPay will be in status PENDING until the transaction is
-   * authorized, declined by the payer or timed out by the system.
-   * Status of the transaction can be validated by using the {requestToPayTransactionStatus}
-   * @param {TransferParam} param -  The required pay request parameter.
+   * Transfer operation is used to transfer an amount from the own account to a payee account.
+   * @param {TransferParam} param -  The required refund request parameter.
    * @return {MethodResponse<void>}
    */
   async transfer(param: TransferParam): MethodResponse<null> {
-    const logger = this.logger.of('transfer');
-    logger.debug(':start with param', param);
-    let parsedParam: TransferParam;
-    try {
-      parsedParam = validInstanceOf(param, TransferParam);
-      // Check if in live environments phone number is valid.
-      if (this.config.targetEnvironment !== XTargetEnvironment.sandbox) {
-        const phoneNumberIsValid = validator.isPhoneNumber(
-          parsedParam.payeeId,
-          xTargetEnvironmentCode[this.config.targetEnvironment]
-        );
-        if (!phoneNumberIsValid) {
-          throw new Error(
-            `The provided payerId:"${parsedParam.payeeId}" do not match phone number of the target environment:${this.config.targetEnvironment}`
-          );
-        }
-      }
-    } catch (error) {
-      logger.error('parameter validation failed', error);
-      return { error };
-    }
-
-    const { data: tokenData, error: tokenError } =
-      await this.createAccessToken();
-
-    if (tokenError) {
-      return {
-        error: { message: 'failed to generate token', raw: tokenError },
-      };
-    }
-    const endPoint = this.routes.transfer;
-    const header = {
-      Authorization: `Bearer ${tokenData}`,
-      'X-Reference-Id': parsedParam.referenceId,
-      'X-Target-Environment': this.config.targetEnvironment,
-      'Ocp-Apim-Subscription-Key': this.config.ocpApimSubscriptionKey,
-    };
-    const body = {
-      amount: parsedParam.amount,
-      currency:
-        parsedParam.currency ??
-        xTargetEnvironmentCurrency[this.config.targetEnvironment],
-      externalId: parsedParam.externalId,
-      payee: {
-        partyIdType: 'MSISDN',
-        partyId: parsedParam.payeeId,
-      },
-      payerMessage: parsedParam.payerMessage,
-      payeeNote: parsedParam.payeeNote,
-    };
-    logger.debug('Sending request...', {
-      header,
-      body,
-      endPoint,
-      method: 'POST',
+    return transferOrRequestToPay({
+      ...param,
+      endPoint: this.routes.transfer,
+      targetEnvironment: this.config.targetEnvironment,
+      createAccessToken: this.createAccessToken,
+      ocpApimSubscriptionKey: this.config.ocpApimSubscriptionKey,
+      logger: this.logging.of('transfer'),
     });
-
-    try {
-      const resp: AxiosResponse = await axios.post(this.routes.transfer, body, {
-        headers: header,
-      });
-
-      this.logger.debug('Request succeeded', {
-        data: resp.data,
-        headers: resp.headers,
-        status: resp.status,
-      });
-
-      return { data: null, raw: resp.data };
-    } catch (error) {
-      this.logger.error('Request failed', error);
-
-      return {
-        error: {
-          message: 'Cash in initialization failed',
-          raw: parseAxiosError(error),
-        },
-      };
-    }
   }
 
   /**
-   * This route is used to get the status of a transfer to pay.
-   * @param {string} referenceId - The reference of the pay request.
+   * This route is used to get the status of a transfer request.
+   * @param {TransferStatusParam} param - The reference of the refund request.
    * @return {string}
    */
   async getTransferStatus(
     param: TransferStatusParam
   ): MethodResponse<Status, TransferStatusResponse> {
-    const logger = this.logger.of('requestToPayTransactionStatus');
-    logger.debug(':start with param', param);
-
-    let parsedParam: TransferStatusParam;
-
-    try {
-      parsedParam = validInstanceOf(param, TransferStatusParam);
-    } catch (error) {
-      logger.error('parameter validation failed', error);
-      return { error };
-    }
-
-    const { data: tokenData, error: tokenError } =
-      await this.createAccessToken();
-
-    if (tokenError) {
-      return {
-        error: { message: 'failed to generate token', raw: tokenError },
-      };
-    }
-
-    const endPoint = this.routes.getTransferStatus(parsedParam.referenceId);
-    const header = {
-      Authorization: `Bearer ${tokenData}`,
-      'X-Target-Environment': this.config.targetEnvironment,
-      'Ocp-Apim-Subscription-Key': this.config.ocpApimSubscriptionKey,
-    };
-    const body = null;
-    logger.debug('Sending request...', {
-      header,
-      body,
-      endPoint,
-      method: 'GET',
+    return transferOrRequestToPayTransactionStatus({
+      getEndPoint: this.routes.getTransferStatus,
+      targetEnvironment: this.config.targetEnvironment,
+      createAccessToken: this.createAccessToken,
+      ocpApimSubscriptionKey: this.config.ocpApimSubscriptionKey,
+      referenceId: param.referenceId,
+      logger: this.logging.of('getTransferStatus'),
     });
-
-    try {
-      const resp: AxiosResponse<TransferStatusResponse> = await axios.get(
-        endPoint,
-        {
-          headers: header,
-        }
-      );
-
-      this.logger.debug('Request succeeded', {
-        data: resp.data,
-        headers: resp.headers,
-        status: resp.status,
-      });
-
-      return {
-        data: resp.data.status,
-        raw: resp.data,
-      };
-    } catch (error) {
-      this.logger.error('Request failed', error);
-
-      return {
-        error: {
-          message: 'Cash in initialization failed',
-          raw: parseAxiosError(error),
-        },
-      };
-    }
   }
 }
