@@ -50,7 +50,7 @@ class TransferOrRtpParam {
    * The external id will be included in transaction history report.
    * External id is not required to be unique.
    */
-  @validator.IsNotEmpty()
+
   @validator.IsString()
   externalId: string;
 

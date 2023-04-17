@@ -54,7 +54,6 @@ export class RequestToPayParam {
    * External id is not required to be unique.
    */
   @validator.IsString()
-  @validator.IsNotEmpty()
   externalId: string;
 
   /**
