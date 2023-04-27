@@ -49,7 +49,7 @@ export abstract class CommonRoutes {
   /**
    * e.g: https://sandbox.momodeveloper.mtn.com/disbursement
    */
-  protected get routePrefix() {
+  protected get baseRoutePrefix() {
     return `${this.envHost}/${this.config.product}`;
   }
 
@@ -58,6 +58,6 @@ export abstract class CommonRoutes {
    * @return {string}
    */
   get createAccessToken(): string {
-    return `${this.routePrefix}/token/`; // Note the ending slash is required. Removing it can produce unwanted behavior.
+    return `${this.baseRoutePrefix}/token/`; // Note the ending slash is required. Removing it can produce unwanted behavior.
   }
 }

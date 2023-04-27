@@ -22,7 +22,7 @@ export class CashInRoutes extends CommonRoutes {
   }
 
   protected get routePrefix() {
-    return `${super.routePrefix}/${this.config.version}`;
+    return `${super.baseRoutePrefix}/${this.config.version}`;
   }
 
   /**
