@@ -63,13 +63,10 @@ export abstract class CommonApi implements RoutesImpl<CommonRoutes> {
       Authorization: `Basic ${authorization}`,
     };
     const body = null;
-
+    const endPoint = this.routes.createAccessToken;
+    logger.debug('Posting...', { header, body, endPoint });
     try {
-      logger.debug({ header, body }, 'Posting...');
-      const response: AxiosResponse<Token> = await axios.post(
-        this.routes.createAccessToken,
-        body
-      );
+      const response: AxiosResponse<Token> = await axios.post(endPoint, body);
 
       logger.debug('response', {
         response: response.data,
