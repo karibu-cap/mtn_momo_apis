@@ -188,7 +188,7 @@ export async function transferOrRequestToPay(
   );
 
   const endPoint = parsedParam.endPoint;
-  const header = {
+  const headers = {
     Authorization: `Bearer ${tokenData}`,
     'X-Reference-Id': parsedParam.referenceId,
     'X-Target-Environment': parsedParam.targetEnvironment,
@@ -208,7 +208,7 @@ export async function transferOrRequestToPay(
     payeeNote: parsedParam.payeeNote,
   };
   logger.debug('Sending request...', {
-    header,
+    headers,
     body,
     endPoint,
     method: 'POST',
@@ -216,7 +216,7 @@ export async function transferOrRequestToPay(
 
   try {
     const resp: AxiosResponse = await axios.post(endPoint, body, {
-      headers: header,
+      headers,
     });
 
     logger.debug('Request succeeded', {

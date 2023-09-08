@@ -58,15 +58,17 @@ export abstract class CommonApi implements RoutesImpl<CommonRoutes> {
     const logger = this.logging.of('createAccessToken');
 
     const authorization = hash(this.config.userId, this.config.apiKey);
-    const header = {
+    const headers = {
       'Ocp-Apim-Subscription-Key': this.config.ocpApimSubscriptionKey,
       Authorization: `Basic ${authorization}`,
     };
     const body = null;
     const endPoint = this.routes.createAccessToken;
-    logger.debug('Posting...', { header, body, endPoint });
+    logger.debug('Posting...', { headers, body, endPoint });
     try {
-      const response: AxiosResponse<Token> = await axios.post(endPoint, body);
+      const response: AxiosResponse<Token> = await axios.post(endPoint, body, {
+        headers,
+      });
 
       logger.debug('response', {
         response: response.data,

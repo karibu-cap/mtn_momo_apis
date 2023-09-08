@@ -45,13 +45,12 @@ export function parseAxiosError(
   if (error instanceof AxiosError) {
     if (error.response) {
       err = {
-        responseError: {
-          data: error.response.data,
-          status: error.response.status,
-          statusText: error.response.statusText,
-          headers: error.response.headers,
-        },
-        requestBody: error.request.body,
+        responseData: error.response.data,
+        responseStatus: error.response.status,
+        responseStatusText: error.response.statusText,
+        responseHeaders: error.response.headers,
+        requestBody: error.config?.data,
+        requestHeader: error.config?.headers,
       };
     } else if (error.request) {
       err = {

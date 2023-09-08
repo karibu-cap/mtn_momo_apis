@@ -87,14 +87,14 @@ export async function transferOrRequestToPayTransactionStatus<
 
   const endPoint = parsedParam.getEndPoint(parsedParam.referenceId);
 
-  const header = {
+  const headers = {
     Authorization: `Bearer ${tokenData}`,
     'X-Target-Environment': parsedParam.targetEnvironment,
     'Ocp-Apim-Subscription-Key': parsedParam.ocpApimSubscriptionKey,
   };
   const body = null;
   logger.debug('Sending request...', {
-    header,
+    headers,
     body,
     endPoint,
     method: 'GET',
@@ -102,7 +102,7 @@ export async function transferOrRequestToPayTransactionStatus<
 
   try {
     const resp: AxiosResponse<T> = await axios.get(endPoint, {
-      headers: header,
+      headers,
     });
 
     logger.debug('Request succeeded', {
