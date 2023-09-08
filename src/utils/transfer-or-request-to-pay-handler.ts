@@ -195,7 +195,7 @@ export async function transferOrRequestToPay(
     'Ocp-Apim-Subscription-Key': parsedParam.ocpApimSubscriptionKey,
   };
   const body = {
-    amount: `${parsedParam.amount},
+    amount: `${parsedParam.amount}`,
     currency:
       parsedParam.currency ??
       xTargetEnvironmentCurrency[parsedParam.targetEnvironment],
@@ -207,6 +207,7 @@ export async function transferOrRequestToPay(
     payerMessage: parsedParam.payerMessage,
     payeeNote: parsedParam.payeeNote,
   };
+
   logger.debug('Sending request...', {
     headers,
     body,
@@ -227,12 +228,13 @@ export async function transferOrRequestToPay(
 
     return { data: null, raw: resp.data };
   } catch (error) {
-    logger.error('Request failed', error);
+    const serializedError = parseAxiosError(error);
+    logger.error('Request failed', serializedError);
 
     return {
       error: {
         message: 'Error occurred while posting the request',
-        raw: parseAxiosError(error),
+        raw: serializedError,
       },
     };
   }
