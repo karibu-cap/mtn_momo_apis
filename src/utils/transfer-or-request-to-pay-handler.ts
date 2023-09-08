@@ -194,16 +194,19 @@ export async function transferOrRequestToPay(
     'X-Target-Environment': parsedParam.targetEnvironment,
     'Ocp-Apim-Subscription-Key': parsedParam.ocpApimSubscriptionKey,
   };
+
+  const targetPhone = {
+    partyIdType: 'MSISDN',
+    partyId: phoneNumber,
+  };
   const body = {
     amount: `${parsedParam.amount}`,
     currency:
       parsedParam.currency ??
       xTargetEnvironmentCurrency[parsedParam.targetEnvironment],
     externalId: parsedParam.externalId,
-    payer: {
-      partyIdType: 'MSISDN',
-      partyId: phoneNumber,
-    },
+    payer: parsedParam.payerId ? targetPhone : undefined,
+    payee: parsedParam.payeeId ? targetPhone : undefined,
     payerMessage: parsedParam.payerMessage,
     payeeNote: parsedParam.payeeNote,
   };

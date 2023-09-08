@@ -1,4 +1,4 @@
-import { AxiosError, AxiosResponse } from 'axios';
+import { AxiosError, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import { hash, parseAxiosError } from './utils';
 
 describe('hash', () => {
@@ -34,14 +34,20 @@ describe('parseAxiosError', () => {
         'Content-Type': 'application/json',
       },
     };
+    const config = <InternalAxiosRequestConfig>{
+      headers: request.headers,
+    };
     const parsedResponse = parseAxiosError(
-      new AxiosError('message', '400', undefined, request) as unknown as Record<
+      new AxiosError('message', '400', config, request) as unknown as Record<
         string,
         unknown
       >
     );
     expect(parsedResponse).toEqual({
-      requestFailed: request,
+      requestFailed: {
+        data: undefined,
+        headers: request.headers,
+      },
     });
   });
 
@@ -60,22 +66,25 @@ describe('parseAxiosError', () => {
       request: request,
     };
 
+    const config = <InternalAxiosRequestConfig>{
+      headers: request.headers,
+      data: request.body,
+    };
     const parsedResponse = parseAxiosError(
       new AxiosError(
         'message',
         '400',
-        undefined,
+        config,
         request,
         response
       ) as unknown as Record<string, unknown>
     );
     expect(parsedResponse).toEqual({
-      responseError: {
-        data: response.data,
-        status: response.status,
-        statusText: response.statusText,
-        headers: response.headers,
-      },
+      requestHeader: request.headers,
+      responseData: response.data,
+      responseStatus: response.status,
+      responseStatusText: response.statusText,
+      responseHeaders: response.headers,
       requestBody: request.body,
     });
   });
