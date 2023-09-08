@@ -195,12 +195,12 @@ export async function transferOrRequestToPay(
     'Ocp-Apim-Subscription-Key': parsedParam.ocpApimSubscriptionKey,
   };
   const body = {
-    amount: parsedParam.amount,
+    amount: `${parsedParam.amount},
     currency:
       parsedParam.currency ??
       xTargetEnvironmentCurrency[parsedParam.targetEnvironment],
     externalId: parsedParam.externalId,
-    payee: {
+    payer: {
       partyIdType: 'MSISDN',
       partyId: phoneNumber,
     },
